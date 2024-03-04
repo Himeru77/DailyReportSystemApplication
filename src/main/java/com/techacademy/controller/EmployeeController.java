@@ -101,20 +101,24 @@ public class EmployeeController {
 
     //従業員更新画面:画面から渡されてきた値に対してDBへ登録
     @GetMapping(value = "/{code}/update")
-    public String edit(@PathVariable String code, Model model) {
-
-        model.addAttribute("employee", employeeService.findByCode(code));
-
+    public String edit(@PathVariable String code, Model model,Employee employee) {
+       if(code == null) {
+           model.addAttribute("employee", employee);
+       }else {
+           model.addAttribute("employee", employeeService.findByCode(code));
+       }
+       
         return "employees/update";
     }
     
     //従業員更新処理:「DBに存在している従業員情報」へ画面から取得した値を上書きして登録
     @PostMapping(value = "/{code}/update")
-    public String update(@Validated Employee employee, BindingResult res, Model model,String dbEmployee,@PathVariable String code) {
+    public String update(@Validated Employee employee, BindingResult res, Model model,String dbEmployee,String name,@PathVariable String code) {
         
         // 入力チェック→エラーがある場合は更新画面を表示する
         if (res.hasErrors()) {
-            return edit(employee.getCode(),model);
+            model.addAttribute("name", employeeService.findByCode(name));
+            return edit(null,model,employee);
         }
 
         // 論理削除(削除フラグをつけてデータの削除を表現すること)を行った従業員番号を指定すると例外となるためtry~catchで対応
@@ -126,13 +130,13 @@ public class EmployeeController {
 
             if (ErrorMessage.contains(result)) {
                 model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
-                return edit(employee.getCode(),model);
+                return edit(employee.getCode(),model,employee);
             }
 
         } catch (DataIntegrityViolationException e) {
             model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.DUPLICATE_EXCEPTION_ERROR),
                     ErrorMessage.getErrorValue(ErrorKinds.DUPLICATE_EXCEPTION_ERROR));
-            return edit(employee.getCode(),model);
+            return edit(employee.getCode(),model,employee);
         }
         
         return "redirect:/employees";
