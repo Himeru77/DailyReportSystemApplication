@@ -55,13 +55,13 @@ public class EmployeeService {
     // 従業員更新
     @Transactional
     public ErrorKinds update(Employee employee,String code) {
-
+        
         // 画面上からパスワードを取得→空
+        Employee dbEmployee = findByCode(code);
         if ("".equals(employee.getPassword())) {
             // パスワードが空→findByで既存のパスワードを呼び出す
-            Employee dbEmployee = findByCode(code);
+            //Employee dbEmployee = findByCode(code);
             employee.setPassword(dbEmployee.getPassword());
-            employee.setCreatedAt(dbEmployee.getCreatedAt());
 
         } else {
             // パスワードを更新する場合→パスワードチェック
@@ -74,8 +74,7 @@ public class EmployeeService {
 
         LocalDateTime now = LocalDateTime.now();
         employee.setUpdatedAt(now);
-
-        // employee.setCreatedAt(dbEmployee);
+        employee.setCreatedAt(dbEmployee.getCreatedAt());
 
         employeeRepository.save(employee);
         return ErrorKinds.SUCCESS;
