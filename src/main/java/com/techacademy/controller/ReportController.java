@@ -43,122 +43,99 @@ public class ReportController {
     }
 
     // 日報詳細画面
-   @GetMapping(value = "/{id}/")
+    @GetMapping(value = "/{id}/")
     public String detail(@PathVariable("id") Integer id, Model model) {
 
-        //model.addAttribute("report", reportService.getId(id));
-        return "report/detail";
+        model.addAttribute("report", reportService.getId(id));
+        return "reports/detail";
     }
 
     // 日報新規登録画面
     @GetMapping(value = "/add")
-    public String create(Model model,@ModelAttribute Report report,@ModelAttribute Employee employee,@AuthenticationPrincipal UserDetail userDetail) {
+    public String create(Model model, @ModelAttribute Report report, @AuthenticationPrincipal UserDetail userDetail) {
         report.setEmployee(userDetail.getEmployee());
         model.addAttribute("report", report);
         return "reports/new";
     }
 
-    // 従業員新規登録処理
+    // 日報新規登録処理
     @PostMapping(value = "/add")
-    public String add(@Validated Report report, BindingResult res, Model model) {
-        
-        
-
-         // パスワード空白チェック
-        /*
-         * エンティティ側の入力チェックでも実装は行えるが、更新の方でパスワードが空白でもチェックエラーを出さずに
-         * 更新出来る仕様となっているため上記を考慮した場合に別でエラーメッセージを出す方法が簡単だと判断
-         */
-    /* if ("".equals(employee.getPassword())) {
-            // パスワードが空白だった場合→新規登録画面を表示
-            model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.BLANK_ERROR),
-                    ErrorMessage.getErrorValue(ErrorKinds.BLANK_ERROR));
-
-            return create(employee);
-
-        }
+    public String add(@Validated Report report, BindingResult res, Model model,
+            @AuthenticationPrincipal UserDetail userDetail) {
+        // ログインしている人以外の人に書き変えられないように必要↓
+        report.setEmployee(userDetail.getEmployee());
 
         // 入力チェック→エラーがある場合は新規登録画面を表示
         if (res.hasErrors()) {
-            return create(employee);
+            return create(model, report, userDetail);
         }
-
-        // 論理削除を行った従業員番号を指定すると例外となるためtry~catchで対応
-        // (findByIdでは削除フラグがTRUEのデータが取得出来ないため)
-        try {
-            ErrorKinds result = employeeService.save(employee);
-
-            if (ErrorMessage.contains(result)) {
-                model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
-                return create(employee);
-            }
-
-        } catch (DataIntegrityViolationException e) {
-            model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.DUPLICATE_EXCEPTION_ERROR),
-                    ErrorMessage.getErrorValue(ErrorKinds.DUPLICATE_EXCEPTION_ERROR));
-            return create(employee);
-        }*/
-
-        return "redirect:/reports";
-    }}
-
-    /* //従業員更新画面:画面から渡されてきた値に対してDBへ登録
-    @GetMapping(value = "/{code}/update")
-    public String edit(@PathVariable String code, Model model,Employee employee) {
-       if(code == null) {
-           model.addAttribute("employee", employee);
-       }else {
-           model.addAttribute("employee", employeeService.findByCode(code));
-       }
-       
-        return "employees/update";
-    }
-    
-    //従業員更新処理:「DBに存在している従業員情報」へ画面から取得した値を上書きして登録
-    @PostMapping(value = "/{code}/update")
-    public String update(@Validated Employee employee, BindingResult res, Model model,String dbEmployee,String name,@PathVariable String code) {
-        
-        // 入力チェック→エラーがある場合は更新画面を表示する
-        if (res.hasErrors()) {
-            model.addAttribute("name", employeeService.findByCode(name));
-            return edit(null,model,employee);
-        }
-
-        // 論理削除(削除フラグをつけてデータの削除を表現すること)を行った従業員番号を指定すると例外となるためtry~catchで対応
-        // (findByIdでは削除フラグがTRUEのデータが取得出来ないため)
-        // 論理削除では、削除されたという情報を持ったレコードは残るため、削除データの参照や復元が可能
-        // try~catch:例外が発生した場合catch{}実行
-        try {
-            ErrorKinds result = employeeService.update(employee,code);
-
-            if (ErrorMessage.contains(result)) {
-                model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
-                return edit(employee.getCode(),model,employee);
-            }
-
-        } catch (DataIntegrityViolationException e) {
-            model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.DUPLICATE_EXCEPTION_ERROR),
-                    ErrorMessage.getErrorValue(ErrorKinds.DUPLICATE_EXCEPTION_ERROR));
-            return edit(employee.getCode(),model,employee);
-        }
-        
-        return "redirect:/employees";
-    }
-
-    
-    // 従業員削除処理
-    @PostMapping(value = "/{code}/delete")
-    public String delete(@PathVariable String code, @AuthenticationPrincipal UserDetail userDetail, Model model) {
-
-        ErrorKinds result = employeeService.delete(code, userDetail);
+        ErrorKinds result = reportService.save(report, userDetail.getEmployee());
 
         if (ErrorMessage.contains(result)) {
             model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
-            model.addAttribute("employee", employeeService.findByCode(code));
-            return detail(code, model);
+            return create(model, report, userDetail);
+        }
+        if (ErrorMessage.contains(result)) {
+            model.addAttribute(ErrorMessage.getErrorName(ErrorKinds.DATECHECK_ERROR),
+                    ErrorMessage.getErrorValue(ErrorKinds.DATECHECK_ERROR));
+            return create(model, report, userDetail);
         }
 
-        return "redirect:/employees";
+        return "redirect:/reports";
     }
 
-}*/
+    // 日報更新画面:画面から渡されてきた値に対してDBへ登録
+    @GetMapping(value = "/{id}/update")
+    public String edit(@PathVariable("id") Integer id, Model model, Report report,
+            @AuthenticationPrincipal UserDetail userDetail) {
+        if (id == null) {
+            model.addAttribute("report", report);
+
+        } else
+            model.addAttribute("report", reportService.getId(id));
+
+        // 更新画面に遷移
+        return "reports/update";
+    }
+
+    // 日報更新処理:「DBに存在している日報情報」へ画面から取得した値を上書きして登録
+    @PostMapping(value = "/{id}/update")
+    public String update(@Validated Report report, BindingResult res, Model model, @PathVariable("id") Integer id,
+            @AuthenticationPrincipal UserDetail userDetail) {
+
+        report.setEmployee(userDetail.getEmployee());
+
+        if (res.hasErrors()) {
+            // エラーあり（@Validatedで検証した結果をBindingResultでresに入れて、resにエラーがあるかないか）
+            return edit(null, model, report, userDetail);
+        }
+        // @Validatedで見れないエラーに対して行う↓
+        ErrorKinds result = reportService.update(report, id, userDetail.getEmployee());
+
+        if (ErrorMessage.contains(result)) {
+            model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
+            return edit(id, model, report, userDetail);
+        }
+
+        // Report登録
+        reportService.update(report, id, userDetail.getEmployee());
+
+        // 一覧画面にリダイレクト
+        return "redirect:/reports";
+    }
+
+
+// 従業員削除処理
+    @PostMapping(value = "/{id}/delete")
+    public String delete(@PathVariable("id") Integer id, @AuthenticationPrincipal UserDetail userDetail, Model model) {
+        ErrorKinds result = reportService.delete(id);
+
+        if (ErrorMessage.contains(result)) {
+            model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
+            model.addAttribute("report", reportService.findById(id));
+            return detail(id, model);
+        }
+
+        return "redirect:/reports";
+    }
+}

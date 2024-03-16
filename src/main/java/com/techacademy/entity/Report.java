@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.validator.constraints.Length;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -48,13 +49,17 @@ public class Report {
     @Column(nullable = false)
     @NotNull
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate report_date;
+    private LocalDate reportDate;
 
     // タイトル
+    @NotEmpty
+    @Length(max=100)
     @Column(length = 100, nullable = false)
     private String title;
 
     // 内容
+    @NotEmpty
+    @Length(max=600)
     @Column(columnDefinition="LONGTEXT", nullable = false)
     private String content;
 
