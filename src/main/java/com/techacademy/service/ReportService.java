@@ -22,12 +22,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class ReportService {
 
     private final ReportRepository reportRepository;
-    private final PasswordEncoder passwordEncoder;
+    ;
 
     @Autowired
     public ReportService(ReportRepository reportRepository, PasswordEncoder passwordEncoder) {
         this.reportRepository = reportRepository;
-        this.passwordEncoder = passwordEncoder;
+        
     }
 
     // 日報保存（新規登録）
