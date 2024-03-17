@@ -41,8 +41,8 @@ public class ReportController {
         model.addAttribute("listSize", reportService.findAll().size());
         model.addAttribute("reportList", reportService.findAll());
         }else {
-            model.addAttribute("listSize", reportService.findByEmployee(employee).size());
-            model.addAttribute("reportList", reportService.findByEmployee(employee)); 
+            model.addAttribute("listSize", reportService.findByEmployee(userDetail.getEmployee()).size());
+            model.addAttribute("reportList", reportService.findByEmployee(userDetail.getEmployee())); 
         }
 
         return "reports/list";
